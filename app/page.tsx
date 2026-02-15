@@ -20,13 +20,16 @@ export default function Home() {
 
   // 🔐 Protect Route
   useEffect(() => {
+  if (typeof window !== "undefined") {
     const loggedIn = localStorage.getItem("isLoggedIn");
+
     if (!loggedIn) {
       router.push("/login");
     } else {
       fetchUsers();
     }
-  }, []);
+  }
+}, []);
 
   // Fetch users
   const fetchUsers = async () => {
