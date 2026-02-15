@@ -41,7 +41,13 @@ export default function Home() {
     setLoading(true);
     const res = await fetch("/api/users");
     const data = await res.json();
-    setUsers(data);
+
+if (Array.isArray(data)) {
+  setUsers(data);
+} else {
+  console.error("API Error:", data);
+  setUsers([]);
+}
     setLoading(false);
   };
 
