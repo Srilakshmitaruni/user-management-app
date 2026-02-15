@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface User {
   id: number;
@@ -8,12 +9,24 @@ interface User {
 }
 
 export default function Home() {
+  const router = useRouter();
+
   const [users, setUsers] = useState<User[]>([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+
+  // 🔐 Protect Route
+  useEffect(() => {
+    const loggedIn = localStorage.getItem("isLoggedIn");
+    if (!loggedIn) {
+      router.push("/login");
+    } else {
+      fetchUsers();
+    }
+  }, []);
 
   // Fetch users
   const fetchUsers = async () => {
@@ -23,10 +36,6 @@ export default function Home() {
     setUsers(data);
     setLoading(false);
   };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   // Add or Update user
   const addUser = async () => {
@@ -77,11 +86,29 @@ export default function Home() {
         padding: "30px",
         borderRadius: "12px",
         boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-        background: "#f9fafb",
+        background: "#ffffff",
       }}
     >
+      {/* Logout Button */}
+      <button
+        onClick={() => {
+          localStorage.removeItem("isLoggedIn");
+          router.push("/login");
+        }}
+        style={{
+          float: "right",
+          background: "black",
+          color: "white",
+          border: "none",
+          padding: "6px 10px",
+          borderRadius: "5px",
+        }}
+      >
+        Logout
+      </button>
+
       <h1 style={{ textAlign: "center", marginBottom: "20px" }}>
-        User Management App
+        User Management Dashboard
       </h1>
 
       {/* Form */}
@@ -101,13 +128,12 @@ export default function Home() {
         <button
           onClick={addUser}
           style={{
-  marginRight: "10px",
-  background: "#facc15",
-  border: "none",
-  padding: "4px 8px",
-  borderRadius: "4px"
-}}
-
+            padding: "8px 12px",
+            background: "#0070f3",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+          }}
         >
           {editingId ? "Update" : "Add"}
         </button>
@@ -163,7 +189,13 @@ export default function Home() {
 
                 <button
                   onClick={() => deleteUser(user.id)}
-                  style={{ color: "red" }}
+                  style={{
+                    background: "#ef4444",
+                    color: "white",
+                    border: "none",
+                    padding: "4px 8px",
+                    borderRadius: "4px",
+                  }}
                 >
                   Delete
                 </button>
@@ -174,5 +206,3 @@ export default function Home() {
     </div>
   );
 }
-
-
