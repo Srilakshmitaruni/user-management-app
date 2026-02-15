@@ -11,17 +11,23 @@ interface User {
 export default function Home() {
   const router = useRouter();
 
+  const [mounted, setMounted] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // 🔐 Protect Route
+  // Wait until component mounts
   useEffect(() => {
-  const checkAuth = () => {
+    setMounted(true);
+  }, []);
+
+  // Auth check after mount
+  useEffect(() => {
+    if (!mounted) return;
+
     const loggedIn = localStorage.getItem("isLoggedIn");
 
     if (!loggedIn) {
@@ -29,14 +35,8 @@ export default function Home() {
     } else {
       fetchUsers();
     }
+  }, [mounted]);
 
-    setIsCheckingAuth(false);
-  };
-
-  checkAuth();
-}, []);
-
-  // Fetch users
   const fetchUsers = async () => {
     setLoading(true);
     const res = await fetch("/api/users");
@@ -45,25 +45,20 @@ export default function Home() {
     setLoading(false);
   };
 
-  // Add or Update user
   const addUser = async () => {
     if (!name || !email) return alert("Fill all fields");
 
     if (editingId) {
       await fetch("/api/users", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: editingId, name, email }),
       });
       setEditingId(null);
     } else {
       await fetch("/api/users", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email }),
       });
     }
@@ -73,21 +68,17 @@ export default function Home() {
     fetchUsers();
   };
 
-  // Delete user
   const deleteUser = async (id: number) => {
     await fetch("/api/users", {
       method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
 
     fetchUsers();
   };
-  if (isCheckingAuth) {
-  return <p style={{ textAlign: "center", marginTop: "100px" }}>Loading...</p>;
-}
+
+  if (!mounted) return null;
 
   return (
     <div
@@ -100,7 +91,6 @@ export default function Home() {
         background: "#ffffff",
       }}
     >
-      {/* Logout Button */}
       <button
         onClick={() => {
           localStorage.removeItem("isLoggedIn");
@@ -122,7 +112,6 @@ export default function Home() {
         User Management Dashboard
       </h1>
 
-      {/* Form */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
         <input
           placeholder="Name"
@@ -150,7 +139,6 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Search */}
       <input
         placeholder="Search by name..."
         value={search}
@@ -162,10 +150,8 @@ export default function Home() {
         }}
       />
 
-      {/* Loading */}
       {loading && <p>Loading users...</p>}
 
-      {/* User List */}
       <ul style={{ listStyle: "none", padding: 0 }}>
         {users
           .filter((user) =>
