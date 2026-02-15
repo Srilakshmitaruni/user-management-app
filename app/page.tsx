@@ -17,10 +17,11 @@ export default function Home() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // 🔐 Protect Route
   useEffect(() => {
-  if (typeof window !== "undefined") {
+  const checkAuth = () => {
     const loggedIn = localStorage.getItem("isLoggedIn");
 
     if (!loggedIn) {
@@ -28,7 +29,11 @@ export default function Home() {
     } else {
       fetchUsers();
     }
-  }
+
+    setIsCheckingAuth(false);
+  };
+
+  checkAuth();
 }, []);
 
   // Fetch users
@@ -80,6 +85,9 @@ export default function Home() {
 
     fetchUsers();
   };
+  if (isCheckingAuth) {
+  return <p style={{ textAlign: "center", marginTop: "100px" }}>Loading...</p>;
+}
 
   return (
     <div
